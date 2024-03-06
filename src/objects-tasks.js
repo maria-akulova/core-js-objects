@@ -160,22 +160,14 @@ function makeWord(lettersObject) {
  *    sellTickets([25, 100]) => false (The seller does not have enough money to give change.)
  */
 function sellTickets(queue) {
-  const result = { result: true };
-  const stack = [];
-  queue.forEach((ticket) => {
-    if (ticket === 25) {
-      stack.push(ticket);
-      result.result = true;
-    } else {
-      result.result = false;
-      let sum = 0;
-      stack.forEach((el) => {
-        sum += el;
-        if (sum === ticket) result.result = true;
-      });
-    }
+  const sum = { sum: 0 };
+
+  queue.forEach((el) => {
+    if (el === 25) sum.sum += 25;
+    else sum.sum -= el;
   });
-  return result.result;
+  if (sum.sum < 0) return false;
+  return true;
 }
 
 /**
