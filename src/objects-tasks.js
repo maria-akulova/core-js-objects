@@ -370,7 +370,7 @@ function CssSelectorBuilder() {
   this.combinatorUsed = [false, 6];
 }
 
-CssSelectorBuilder.prototype.checkUsage = function (methodName) {
+CssSelectorBuilder.prototype.checkUsage = function anonymus(methodName) {
   const usedFlag = `${methodName}Used`;
   if (this[usedFlag][1] < this.previousOrder) {
     throw new Error(
@@ -393,43 +393,43 @@ CssSelectorBuilder.prototype.checkUsage = function (methodName) {
   }
 };
 
-CssSelectorBuilder.prototype.element = function (value) {
+CssSelectorBuilder.prototype.element = function anonymus(value) {
   this.checkUsage('element');
   this.result += value;
   return this;
 };
 
-CssSelectorBuilder.prototype.id = function (value) {
+CssSelectorBuilder.prototype.id = function anonymus(value) {
   this.checkUsage('id');
   this.result += `#${value}`;
   return this;
 };
 
-CssSelectorBuilder.prototype.class = function (value) {
+CssSelectorBuilder.prototype.class = function anonymus(value) {
   this.checkUsage('class');
   this.result += `.${value}`;
   return this;
 };
 
-CssSelectorBuilder.prototype.attr = function (value) {
+CssSelectorBuilder.prototype.attr = function anonymus(value) {
   this.checkUsage('attr');
   this.result += `[${value}]`;
   return this;
 };
 
-CssSelectorBuilder.prototype.pseudoClass = function (value) {
+CssSelectorBuilder.prototype.pseudoClass = function anonymus(value) {
   this.checkUsage('pseudoClass');
   this.result += `:${value}`;
   return this;
 };
 
-CssSelectorBuilder.prototype.pseudoElement = function (value) {
+CssSelectorBuilder.prototype.pseudoElement = function anonymus(value) {
   this.checkUsage('pseudoElement');
   this.result += `::${value}`;
   return this;
 };
 
-CssSelectorBuilder.prototype.combine = function (
+CssSelectorBuilder.prototype.combine = function anonymus(
   selector1,
   combinator,
   selector2
@@ -439,13 +439,13 @@ CssSelectorBuilder.prototype.combine = function (
   return result;
 };
 
-CssSelectorBuilder.prototype.stringify = function () {
+CssSelectorBuilder.prototype.stringify = function anonymus() {
   const { result } = this;
   this.reset();
   return result;
 };
 
-CssSelectorBuilder.prototype.reset = function () {
+CssSelectorBuilder.prototype.reset = function anonymus() {
   this.result = '';
   this.previousOrder = 0;
   this.elementUsed = [false, 0];
