@@ -358,35 +358,254 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
+function CssSelectorBuilder() {
+  this.result = '';
+  this.previousOrder = 0;
+  this.elementUsed = [false, 0];
+  this.idUsed = [false, 1];
+  this.classUsed = [false, 2];
+  this.attrUsed = [false, 3];
+  this.pseudoClassUsed = [false, 4];
+  this.pseudoElementUsed = [false, 5];
+  this.combinatorUsed = [false, 6];
+}
+
+CssSelectorBuilder.prototype.checkUsage = function (methodName) {
+  const usedFlag = `${methodName}Used`;
+  if (this[usedFlag][1] < this.previousOrder) {
+    throw new Error(
+      `Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element`
+    );
+  }
+  const flag = this[usedFlag][1];
+  this.previousOrder = flag;
+  if (
+    !['classUsed', 'attrUsed', 'pseudoClassUsed', 'combinatorUsed'].includes(
+      usedFlag
+    )
+  ) {
+    if (this[usedFlag][0]) {
+      throw new Error(
+        `Element, id and pseudo-element should not occur more then one time inside the selector" if element, id or pseudo-element occurs twice or more times`
+      );
+    }
+    this[usedFlag][0] = true;
+  }
+};
+
+CssSelectorBuilder.prototype.element = function (value) {
+  this.checkUsage('element');
+  this.result += value;
+  return this;
+};
+
+CssSelectorBuilder.prototype.id = function (value) {
+  this.checkUsage('id');
+  this.result += `#${value}`;
+  return this;
+};
+
+CssSelectorBuilder.prototype.class = function (value) {
+  this.checkUsage('class');
+  this.result += `.${value}`;
+  return this;
+};
+
+CssSelectorBuilder.prototype.attr = function (value) {
+  this.checkUsage('attr');
+  this.result += `[${value}]`;
+  return this;
+};
+
+CssSelectorBuilder.prototype.pseudoClass = function (value) {
+  this.checkUsage('pseudoClass');
+  this.result += `:${value}`;
+  return this;
+};
+
+CssSelectorBuilder.prototype.pseudoElement = function (value) {
+  this.checkUsage('pseudoElement');
+  this.result += `::${value}`;
+  return this;
+};
+
+CssSelectorBuilder.prototype.combine = function (
+  selector1,
+  combinator,
+  selector2
+) {
+  const result = new CssSelectorBuilder();
+  result.result = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+  return result;
+};
+
+CssSelectorBuilder.prototype.stringify = function () {
+  const { result } = this;
+  this.reset();
+  return result;
+};
+
+CssSelectorBuilder.prototype.reset = function () {
+  this.result = '';
+  this.previousOrder = 0;
+  this.elementUsed = [false, 0];
+  this.idUsed = [false, 1];
+  this.classUsed = [false, 2];
+  this.attrUsed = [false, 3];
+  this.pseudoClassUsed = [false, 4];
+  this.pseudoElementUsed = [false, 5];
+  this.combinatorUsed = [false, 6];
+};
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  result: '',
+  BaseElementSelector(value, type) {
+    return {
+      value,
+      elementUsed: true,
+      type,
+    };
+  },
+  element(value) {
+    // return new this.BaseElementSelector(value, 'element');
+    return new CssSelectorBuilder().element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new CssSelectorBuilder().id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new CssSelectorBuilder().class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new CssSelectorBuilder().attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new CssSelectorBuilder().pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new CssSelectorBuilder().pseudoElement(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return new CssSelectorBuilder().combine(selector1, combinator, selector2);
   },
 };
+
+// const cssSelectorBuilder = (function anonymus() {
+//   class CssSelectorBuilder {
+//     constructor() {
+//       this.reset();
+//     }
+
+//     reset() {
+//       this.result = '';
+//       this.elementUsed = false;
+//       this.idUsed = false;
+//       this.classUsed = false;
+//       this.attrUsed = false;
+//       this.pseudoClassUsed = false;
+//       this.pseudoElementUsed = false;
+//       this.combinatorUsed = false;
+//     }
+
+//     checkUsage(methodName) {
+//       const usedFlag = `${methodName}Used`;
+//       if (['classUsed', 'attrUsed', 'pseudoClassUsed'].includes(usedFlag))
+//         return;
+//       if (this[usedFlag]) {
+//         throw new Error(`Cannot call ${methodName} after using ${this.result}`);
+//       }
+//       this[usedFlag] = true;
+//     }
+
+//     element(value) {
+//       this.checkUsage('element');
+//       this.result += value;
+//       return this;
+//     }
+
+//     id(value) {
+//       this.checkUsage('id');
+//       this.result += `#${value}`;
+//       return this;
+//     }
+
+//     class(value) {
+//       this.checkUsage('class');
+//       this.result += `.${value}`;
+//       return this;
+//     }
+
+//     attr(value) {
+//       this.checkUsage('attr');
+//       this.result += `[${value}]`;
+//       return this;
+//     }
+
+//     pseudoClass(value) {
+//       this.checkUsage('pseudoClass');
+//       this.result += `:${value}`;
+//       return this;
+//     }
+
+//     pseudoElement(value) {
+//       this.checkUsage('pseudoElement');
+//       this.result += `::${value}`;
+//       return this;
+//     }
+
+//     combine(selector1, combinator, selector2) {
+//       this.checkUsage('combine');
+//       this.result = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+//       return this;
+//     }
+
+//     stringify() {
+//       const { result } = this;
+//       this.reset();
+//       return result;
+//     }
+//   }
+
+//   return new CssSelectorBuilder();
+// })();
+
+// const cssSelectorBuilder1 = {
+//   function() {},
+
+//   element(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   id(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   class(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   attr(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   pseudoClass(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   pseudoElement(/* value */) {
+//     throw new Error('Not implemented');
+//   },
+
+//   combine(/* selector1, combinator, selector2 */) {
+//     throw new Error('Not implemented');
+//   },
+// };
 
 module.exports = {
   shallowCopy,
