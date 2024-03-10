@@ -37,7 +37,7 @@ function mergeObjects(objects) {
   const newObj = {};
   objects.forEach((obj) => {
     Object.entries(obj).forEach(([key, value]) => {
-      if (Object.prototype.hasOwnProperty.call(newObj, key)) {
+      if (key in newObj) {
         newObj[key] += value;
       } else {
         newObj[key] = value;
@@ -62,13 +62,8 @@ function mergeObjects(objects) {
  *
  */
 function removeProperties(obj, keys) {
-  const newObj = {};
-  Object.assign(newObj, obj);
-  keys.forEach((el) => {
-    if (Object.prototype.hasOwnProperty.call(obj, el)) {
-      delete newObj[el];
-    }
-  });
+  const newObj = { ...obj };
+  keys.forEach((el) => (el in obj ? delete newObj[el] : el));
   return newObj;
 }
 
@@ -160,13 +155,13 @@ function makeWord(lettersObject) {
  *    sellTickets([25, 100]) => false (The seller does not have enough money to give change.)
  */
 function sellTickets(queue) {
-  const sum = { sum: 0 };
+  let sum = 0;
 
   queue.forEach((el) => {
-    if (el === 25) sum.sum += 25;
-    else sum.sum -= el;
+    if (el === 25) sum += 25;
+    else sum -= el;
   });
-  if (sum.sum < 0) return false;
+  if (sum < 0) return false;
   return true;
 }
 
@@ -358,76 +353,96 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
-function CssSelectorBuilder() {
-  this.result = '';
-  this.previousOrder = 0;
-  this.elementUsed = [false, 0];
-  this.idUsed = [false, 1];
-  this.classUsed = [false, 2];
-  this.attrUsed = [false, 3];
-  this.pseudoClassUsed = [false, 4];
-  this.pseudoElementUsed = [false, 5];
-  this.combinatorUsed = [false, 6];
-}
-
-CssSelectorBuilder.prototype.checkUsage = function anonymus(methodName) {
-  const usedFlag = `${methodName}Used`;
-  if (this[usedFlag][1] < this.previousOrder) {
-    throw new Error(
-      `Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element`
-    );
+class CssSelectorBuilder {
+  constructor() {
+    this.result = '';
+    this.previousOrder = 0;
+    this.elementUsed = [false, 0];
+    this.idUsed = [false, 1];
+    this.classUsed = [false, 2];
+    this.attrUsed = [false, 3];
+    this.pseudoClassUsed = [false, 4];
+    this.pseudoElementUsed = [false, 5];
+    this.combinatorUsed = [false, 6];
   }
-  const flag = this[usedFlag][1];
-  this.previousOrder = flag;
-  if (
-    !['classUsed', 'attrUsed', 'pseudoClassUsed', 'combinatorUsed'].includes(
-      usedFlag
-    )
-  ) {
-    if (this[usedFlag][0]) {
+
+  checkUsage(methodName) {
+    const usedFlag = `${methodName}Used`;
+    if (this[usedFlag][1] < this.previousOrder) {
       throw new Error(
-        `Element, id and pseudo-element should not occur more then one time inside the selector" if element, id or pseudo-element occurs twice or more times`
+        `Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element`
       );
     }
-    this[usedFlag][0] = true;
+    const flag = this[usedFlag][1];
+    this.previousOrder = flag;
+    if (
+      !['classUsed', 'attrUsed', 'pseudoClassUsed', 'combinatorUsed'].includes(
+        usedFlag
+      )
+    ) {
+      if (this[usedFlag][0]) {
+        throw new Error(
+          `Element, id and pseudo-element should not occur more then one time inside the selector" if element, id or pseudo-element occurs twice or more times`
+        );
+      }
+      this[usedFlag][0] = true;
+    }
   }
-};
 
-CssSelectorBuilder.prototype.element = function anonymus(value) {
-  this.checkUsage('element');
-  this.result += value;
-  return this;
-};
+  element(value) {
+    this.checkUsage('element');
+    this.result += value;
+    return this;
+  }
 
-CssSelectorBuilder.prototype.id = function anonymus(value) {
-  this.checkUsage('id');
-  this.result += `#${value}`;
-  return this;
-};
+  id(value) {
+    this.checkUsage('id');
+    this.result += `#${value}`;
+    return this;
+  }
 
-CssSelectorBuilder.prototype.class = function anonymus(value) {
-  this.checkUsage('class');
-  this.result += `.${value}`;
-  return this;
-};
+  class(value) {
+    this.checkUsage('class');
+    this.result += `.${value}`;
+    return this;
+  }
 
-CssSelectorBuilder.prototype.attr = function anonymus(value) {
-  this.checkUsage('attr');
-  this.result += `[${value}]`;
-  return this;
-};
+  attr(value) {
+    this.checkUsage('attr');
+    this.result += `[${value}]`;
+    return this;
+  }
 
-CssSelectorBuilder.prototype.pseudoClass = function anonymus(value) {
-  this.checkUsage('pseudoClass');
-  this.result += `:${value}`;
-  return this;
-};
+  pseudoClass(value) {
+    this.checkUsage('pseudoClass');
+    this.result += `:${value}`;
+    return this;
+  }
 
-CssSelectorBuilder.prototype.pseudoElement = function anonymus(value) {
-  this.checkUsage('pseudoElement');
-  this.result += `::${value}`;
-  return this;
-};
+  pseudoElement(value) {
+    this.checkUsage('pseudoElement');
+    this.result += `::${value}`;
+    return this;
+  }
+
+  stringify() {
+    const { result } = this;
+    this.reset();
+    return result;
+  }
+
+  reset() {
+    this.result = '';
+    this.previousOrder = 0;
+    this.elementUsed = [false, 0];
+    this.idUsed = [false, 1];
+    this.classUsed = [false, 2];
+    this.attrUsed = [false, 3];
+    this.pseudoClassUsed = [false, 4];
+    this.pseudoElementUsed = [false, 5];
+    this.combinatorUsed = [false, 6];
+  }
+}
 
 CssSelectorBuilder.prototype.combine = function anonymus(
   selector1,
@@ -437,24 +452,6 @@ CssSelectorBuilder.prototype.combine = function anonymus(
   const result = new CssSelectorBuilder();
   result.result = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
   return result;
-};
-
-CssSelectorBuilder.prototype.stringify = function anonymus() {
-  const { result } = this;
-  this.reset();
-  return result;
-};
-
-CssSelectorBuilder.prototype.reset = function anonymus() {
-  this.result = '';
-  this.previousOrder = 0;
-  this.elementUsed = [false, 0];
-  this.idUsed = [false, 1];
-  this.classUsed = [false, 2];
-  this.attrUsed = [false, 3];
-  this.pseudoClassUsed = [false, 4];
-  this.pseudoElementUsed = [false, 5];
-  this.combinatorUsed = [false, 6];
 };
 
 const cssSelectorBuilder = {
